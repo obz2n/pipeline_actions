@@ -1,0 +1,33 @@
+name: ETL diario
+
+on:
+  schedule:
+    - cron: "0 10 * * *"   # 10:00 UTC = 07:00 em Brasilia
+  workflow_dispatch:        # permite rodar manualmente pelo botao "Run workflow"
+
+concurrency:
+  group: etl
+  cancel-in-progress: false  # nao sobrepoe execucoes
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Rodar pipeline
+        run: python pipeline.py
+        env:
+          MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
+          PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+          PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
+          # adicione aqui credenciais das suas fontes (API_KEY_X etc.)

@@ -9,7 +9,8 @@ def extract_and_load_raw(con: duckdb.DuckDBPyConnection) -> None:
     # Dica: processe localmente e grave em Parquet/tabelas temporarias.
     con.sql("""
         CREATE OR REPLACE TABLE raw_vendas AS
-        SELECT * FROM read_csv_auto('https://exemplo.com/vendas.csv')
+        SELECT * FROM read_csv_auto('https://docs.google.com/spreadsheets/d/e/2PACX-1vSBGBpS8QHUsWZ6HLSykAmn0hqXIJh99oZf_BWuzP4ADh6Q_q7-TfEDtT8SwOgvKXVWtSgHOXDgplbo/pub?gid=800900601&single=true&output=csv'
+	    ,normalize_names=True);
     """)
 
 
@@ -17,9 +18,15 @@ def extract_and_load_raw(con: duckdb.DuckDBPyConnection) -> None:
 def transform(con: duckdb.DuckDBPyConnection) -> None:
     con.sql("""
         CREATE OR REPLACE TABLE gold_vendas AS
-        SELECT cliente, SUM(valor) AS total
+        SELECT 
+        	codigo_venda
+        	,_data
+        	,id_loja
+        	,produto
+        	,quantidade
+        	,valor_unitario
+        	,valor_final
         FROM raw_vendas
-        GROUP BY cliente
     """)
 
 

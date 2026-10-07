@@ -1,9 +1,10 @@
 import os
 import duckdb
 from prefect import flow, task
+from prefect.cache_policies import NO_CACHE
 
 
-@task(retries=2, retry_delay_seconds=30)
+@task(retries=2, retry_delay_seconds=30, cache_policy=NO_CACHE)
 def extract_and_load_raw(con: duckdb.DuckDBPyConnection) -> None:
     # Substitua pela sua extracao real (API, banco, arquivos...)
     # Dica: processe localmente e grave em Parquet/tabelas temporarias.
@@ -14,7 +15,7 @@ def extract_and_load_raw(con: duckdb.DuckDBPyConnection) -> None:
     """)
 
 
-@task
+@task(cache_policy=NO_CACHE)
 def transform(con: duckdb.DuckDBPyConnection) -> None:
     con.sql("""
         CREATE OR REPLACE TABLE gold_vendas AS
@@ -38,7 +39,12 @@ def pipeline():
     transform(local)
 
     # 2) Publica so a camada final na MotherDuck
-    token = os.environ["MOTHERDUCK_TOKEN"]
+    token = os.environ.get("MOTHERDUCK_TOKEN", "").strip()
+    if not token:
+        raise RuntimeError(
+            "MOTHERDUCK_TOKEN vazio ou ausente. Crie o secret em "
+            "Settings > Secrets and variables > Actions > Repository secrets."
+        )
     md = duckdb.connect(f"md:meu_db?motherduck_token={token}")
     df = local.sql("SELECT * FROM gold_vendas").arrow()
     md.sql("CREATE OR REPLACE TABLE gold_vendas AS SELECT * FROM df")

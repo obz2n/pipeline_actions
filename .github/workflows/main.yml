@@ -5,6 +5,9 @@ on:
     - cron: "0 10 * * *"   # 10:00 UTC = 07:00 em Brasilia
   workflow_dispatch:        # permite rodar manualmente pelo botao "Run workflow"
 
+permissions:
+  contents: read
+
 concurrency:
   group: etl
   cancel-in-progress: false  # nao sobrepoe execucoes

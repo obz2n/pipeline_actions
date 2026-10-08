@@ -2,7 +2,7 @@ name: ETL diario
 
 on:
   schedule:
-    - cron: "0 10 * * *"   # 10:00 UTC = 07:00 em Brasilia
+  #  - cron: "0 10 * * *"   # 10:00 UTC = 07:00 em Brasilia
   workflow_dispatch:        # permite rodar manualmente pelo botao "Run workflow"
 
 permissions:
